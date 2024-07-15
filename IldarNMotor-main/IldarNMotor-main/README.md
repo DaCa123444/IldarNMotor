@@ -209,9 +209,11 @@ typedef struct
  - 위 내용을 바탕으로 lidar 부품을 연결하여 통신을 확인하였다.
 
 ### 과정
- - task 분리
- - 작업 우선순위
+
 
 ### 이미지
 ![Alt text](/IldarNMotor-main/img/1.jpg)
+
 ![Alt text](/IldarNMotor-main/img/2.jpg)
+
+### 동영상 및 산출물
