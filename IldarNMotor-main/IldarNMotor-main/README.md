@@ -212,6 +212,6 @@ typedef struct
  - task 분리
  - 작업 우선순위
 
-#### 이미지
- /IldarNMotor-main/img/1.jpg
- /IldarNMotor-main/img/2.jpg
+### 이미지
+![Alt text](/IldarNMotor-main/img/1.jpg)
+![Alt text](/IldarNMotor-main/img/2.jpg)
