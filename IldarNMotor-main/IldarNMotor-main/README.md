@@ -44,6 +44,23 @@
   + EXTI Vector Table ( EXTI  인터럽트 테이블)
      * **이는 handler가 테이블에 사용되는 이유(추상화,범용성)**
   
+ * 참고(in as)
+ - `  .word     EXTI0_IRQHandler `
+ - `   .weak      EXTI0_IRQHandler ` // 재구현 가능
+
+##### 함수 내 기능 구현
+```
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == 1)  // 1 대신 0x0001으로 하는게 맞나?
+	{
+		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_0);
+	}
+}
+```
+##### switch는  
+  - OFF 시 GND 및 4.7k옴과 연결되어 pull down을 구성한다.
+  - ON 시 GND의 높은 저항으로 인해 5V를 PB0가 high신호를 받게 된다.
 
 
 
@@ -142,7 +159,7 @@ typedef struct
    + stop bits : 1
 
   * `HAL_UART_Transmit` 함수
-   - 8,9bit 확인 후 DR를 맞게 초기화 (0x01FF 및 0xFF)
+   - 8,9bit 확인 후 DR를 맞게 초기화 (0x01FF 및 0xFF) // 01ff에서 01: 상위 // ff 하위
    - 전송 완료 후 플래그 확인,초기화,종료
 
   * 인터럽트 이용 (간단히)
@@ -153,6 +170,27 @@ typedef struct
   * DMA 사용
    + 프로세서가 데이터 블록을 준비해주고 전송을 완료하면 정리
    + DMA는 프로세서 대신하여 데이터 전송을 담당. 프로세서는 다른 일처리 가능
+
+##### 구현
+ - 거리값 출력 확인을 위한 프린트기능
+`	  printf("\n\r dist = %ld",dist);`
+ - 출력 함수
+```
+void __io_putchar(int ch)
+{
+	HAL_UART_Transmit(&huart2,(uint8_t*)&ch,1,0xFFFF); // 1 : 1byte , 0xffff : 65s
+						      // huart2->instance->DR을 업데이트 후 전달하는 방식
+}
+```
+**dma 방식을 적용하면 우선순위에 맞게 실행 후 기능할 것이므로 적용하는 것이 맞는지**
+**uart2와 i2c1의 우선순위 찾아놓기 (datasheet)**
+
+ - i2c의 경우 주소를 찾게 되는데 이때, 주소값이 일치하는지 확인하기 위해 프린트 기능
+`	printf("\n\r Device Address= 0x%02X",device_address_temp);`
+ * 이는 주변장비에 전원 문제에도 같이 걸림
+
+ - 서보 모터의 회전도를 확인하는데에도 프린트 기능
+`printf("\n\rTim1->CCR1 : %d",TIM1->CCR1);` // tim1의 CCR(Capture/Compare Register1): 듀티를 저장
 
 
 #### 3. DMA
@@ -168,6 +206,9 @@ typedef struct
   * 인터럽트와 DMA 호출 과정 차이
 
  프로젝트에서의 적용 : DMA를 통해, ble 통신에서의 uart 통신을 담당할 것으로 예상 (키 모듈 제작 후 구현 계획)
+
+
+ 
 
 
 #### 4. timer
@@ -192,6 +233,9 @@ typedef struct
   - sys clock 과 PSR, COUNTER PERIOD에 의한 클럭 주기와 듀티값
   - TIM1의 동작 타이밍도(COUNTER OVERFLOW , UPDATE EVENT, UPDATE INTERRUPT FLAG 등) 
 
+
+
+
 #### 5.i2c 
  - **1대다 통신**
   * 따라서 각 장치를 제어하는 주소가 중요 ( slave 들 각각 주소)
@@ -207,13 +251,26 @@ typedef struct
   * 정지 조건은 데이터 전송이 시작된 이후, sdl은 low상태를 유지한다. scl(마스터가 보낸 클럭 신호)가 high를 유지하고 sdl이 high로 변경됨을 통해 정지를 인식한다.
   
  - 위 내용을 바탕으로 lidar 부품을 연결하여 통신을 확인하였다.
+ - 그림 추가
+  * 먼저 master에서 lidar 주소 + 쓰기모드로 읽을 데이터의 주소를 전달한다.
+  * 그 후, lidar 주소 + 읽기 모드로 데이터를 읽는다.
 
-### 과정
+#### 6. 서보 모터
+ - 
+
+
+#### 7. rtos
+ - 하나의 mcu를 효율적으로 사용하여 여러 일(task)를 동시에 처리하는 것처럼 보이게 한다.
+ - 가능한 원리 - task별로 스택을 설정하고 cpu에서 처리하는 관련 레지스터들을 스택에 저장하는 블록형식으로 데이터를 관리함으로써, 필요한 작업을 넣어서 처리하고 필요가 끝났을 때, 적절한 알고리즘으로 다음 태스크를 진행함
+
+##### task 분리
+ 1. dc모터 회전
+ 2. 레이더 장비 측정
+ 3. 서보 모터 회전
+ 4. ble uart 입력 - **interrupt로 구현하면 불필요?**
+
 
 
 ### 이미지
 ![Alt text](/IldarNMotor-main/img/1.jpg)
-
 ![Alt text](/IldarNMotor-main/img/2.jpg)
-
-### 동영상 및 산출물
