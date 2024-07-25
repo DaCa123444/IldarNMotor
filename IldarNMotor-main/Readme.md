@@ -15,8 +15,9 @@
 * 라이더값 데이터 수신
 ![Alt text](/IldarNMotor-main/data/lidar_printf.png)
 
-
-* 거리값 1280 이하에서 값을 감지하고 거리값(dist)와 모터각도(receivedData)를 출력한 모습이다.
+**메세지큐의 출력값**
+* 거리값 1280 이하에서 값을 감지하고 거리값(dist)와 모터각도(receivedData)를 메세지 큐에 넣는다.
+그 후 큐에서 값을 꺼내어 출력한 모습이다.
 ![Alt text](/IldarNMotor-main/img/test/거리값각도값측정및메시지전달.png)
 
 
