@@ -11,26 +11,26 @@
 
 ## 작업 결과물
 * 장비
-![Alt text](IldarNMotor-main/img/1.jpg)
+![Alt text](/IldarNMotor-main/img/1.jpg)
 * 라이더값 데이터 수신
-![Alt text](IldarNMotor-main/data/lidar_printf.png)
+![Alt text](/IldarNMotor-main/data/lidar_printf.png)
 
 
 * 거리값 1280 이하에서 값을 감지하고 거리값(dist)와 모터각도(receivedData)를 출력한 모습이다.
-![Alt text](IldarNMotor-main/img/test/거리값각도값측정및메시지전달.png)
+![Alt text](/IldarNMotor-main/img/test/거리값각도값측정및메시지전달.png)
 
 
 * 타이머값 설정 근거
-![Alt text](IldarNMotor-main/img/timer_clock_setting.png)
+![Alt text](/IldarNMotor-main/img/timer_clock_setting.png)
 
 * DMA를 이용한 데이터 수집 근거
-![Alt text](IldarNMotor-main/img/DMA.png)
+![Alt text](/IldarNMotor-main/img/DMA.png)
 
 * I2C 통신 과정에서 주소값 쓰고 원하는 데이터 주소값 쓰는 과정(Master)
-![Alt text](IldarNMotor-main/img/I2C_Read.png)
+![Alt text](/IldarNMotor-main/img/I2C_Read.png)
 
 * I2C Slave에 거리값이 저장된 레지스터
-![Alt text](IldarNMotor-main/data/lidar_register.png)
+![Alt text](/IldarNMotor-main/data/lidar_register.png)
 
 
 
