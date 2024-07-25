@@ -1,12 +1,42 @@
 # lidar car
 
 ## 차례
-
- 1. lidar
+ 0. 작업 결과물
+ 1. lidar 		(*DMA사용 데이터 수집)
  2. servo_motor
  3. 바퀴 작동 x      : 키 조종 장비가 없이 측정값을 확인하기가 어려워 제외
  4. 키조종 x 	: 시간이 부족해 제외
  5. 이벤트 및 메세지큐
+ 
+
+## 작업 결과물
+* 장비
+![Alt text](IldarNMotor-main/img/1.jpg)
+* 라이더값 데이터 수신
+![Alt text](IldarNMotor-main/data/lidar_printf.png)
+
+
+* 거리값 1280 이하에서 값을 감지하고 거리값(dist)와 모터각도(receivedData)를 출력한 모습이다.
+![Alt text](IldarNMotor-main/img/test/거리값각도값측정및메시지전달.png)
+
+
+* 타이머값 설정 근거
+![Alt text](IldarNMotor-main/img/timer_clock_setting.png)
+
+* DMA를 이용한 데이터 수집 근거
+![Alt text](IldarNMotor-main/img/DMA.png)
+
+* I2C 통신 과정에서 주소값 쓰고 원하는 데이터 주소값 쓰는 과정(Master)
+![Alt text](IldarNMotor-main/img/I2C_Read.png)
+
+* I2C Slave에 거리값이 저장된 레지스터
+![Alt text](IldarNMotor-main/data/lidar_register.png)
+
+
+
+
+
+
 ## lidar
 
 #### i2c 데이터 발신
@@ -60,11 +90,13 @@ void T2function(){
 `myBinarySem01Handle = osSemaphoreNew(1, 1, &myBinarySem01_attributes);`
 
 #### 태스크 설정
-`t2_lidarHandle = osThreadNew(StartTask02, NULL, &t2_lidar_attributes);`
+`t2_lidarHandle = osThreadNew(StartTask02, NULL, &t2_lidar_attributes);` <br/>
+
 `t4_detect_objHandle = osThreadNew(StartTask04, NULL, &t4_detect_obj_attributes);`
 
 #### T2(라이다 태스크)
- * 세마포어의 목적인 데이터값 신뢰성을 확보하기 위해 세마포어 푸는 것은 Task4인 메시지큐에 데이터 넣기 후에 진행
+ * 특정 조건에서 통신의 무결성을 위해 세마포어를 사용한다. 따라서 메세지를 데이터 큐에 넣은 후(메세지 큐 생성 태스크) 세마포어가 풀리도록 설정한다. 
+
 ```
 void StartTask02(void *argument)
 {
@@ -102,16 +134,21 @@ void StartTask04(void *argument)
 
 #### 특정 조건에서 이벤트 생성 및 메세지 큐 생성
  * 실행시 세마포어핸들러01을 풀어줌
+ * 원래는 이벤트 flag on + 메세지 큐 생성까지이지만, 큐에 정상적으로 넣어지는지 확인하기 위해 큐를 꺼내서 값을 출력하도록 구성하였다.
+
 ```
 void T4function(){
 
+	// 특정 조건 하에서만 메세지 큐 생성
 	if(dist <1280)
 	{
+		//큐 데이터 업데이트
 		QueueData_t queueData;
 		queueData.dist = (uint32_t)dist; // 
 		queueData.servo_motor = (uint32_t)angle;
-		//printf("%d!!!!!!!!",osMessageQueueGetMsgSize(msgQHandle));
-		osEventFlagsSet(myEvent01Handle, 1); // 0bit 이벤트 flag on
+
+		// 0bit 이벤트 flag on
+		osEventFlagsSet(myEvent01Handle, 1); 
 		osStatus_t status = osMessageQueuePut(msgQHandle, &queueData, 0, 10); 
 		if (status == osOK)
 		{
@@ -122,6 +159,8 @@ void T4function(){
 			printf("\n\rFailed to send message");
 		}
 	}
+	
+	// 특정 조건 하에서만 생성된 메시지 읽기
 	if(dist <1280){
 		QueueData_t receivedData;
 		osStatus_t status = osMessageQueueGet(msgQHandle, &receivedData, NULL, osWaitForever);
@@ -164,6 +203,12 @@ void T1function(){
 
 #### 각도 변환
  * 90도만 회전하기 위해 펄스 길이 결정
+
+APB2의 Sys Clock : 64MHZ
+PSR : 64 - 1
+count period : 20000 - 1
+로 설정하여 50hz로 설정
+
 ```
 void set_Servo_Angle(TIM_HandleTypeDef *htim, uint32_t channel)
 {
@@ -181,7 +226,7 @@ void StartDefaultTask(void *argument)
   {
 	  //printf("\n\r 11");
 	  if(osSemaphoreAcquire(myBinarySem02Handle,10)==osOK){
-		  T1function(); //?���???? 모터 ?��?��
+		  T1function(); 
 
 		  osSemaphoreRelease(myBinarySem02Handle);osDelay(100);
 	  }
@@ -215,7 +260,7 @@ void T4function(){
 		queueData.dist = (uint32_t)dist; // 
 		queueData.servo_motor = (uint32_t)angle;
 		//printf("%d!!!!!!!!",osMessageQueueGetMsgSize(msgQHandle));
-		osEventFlagsSet(myEvent01Handle, 1); // 0bit?�� ?��벤트 flag on
+		osEventFlagsSet(myEvent01Handle, 1); // 0bit 이벤트 flag on
 		osStatus_t status = osMessageQueuePut(msgQHandle, &queueData, 0, 10); 
 		if (status == osOK)
 		{
