@@ -28,6 +28,9 @@
 ![Alt text](/IldarNMotor-main/img/DMA.png)
 
 * I2C 통신 과정에서 주소값 쓰고 원하는 데이터 주소값 쓰는 과정(Master)
+
+ - R : I2C로 데이터 읽기
+ - W : 원하는 주소 전달
 ![Alt text](/IldarNMotor-main/img/I2C_Read.png)
 
 * I2C Slave에 거리값이 저장된 레지스터
